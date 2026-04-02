@@ -1,0 +1,47 @@
+# Business — Generative Engine Optimization Map
+
+---
+
+## Pages
+
+### בית
+https://example.com
+האם אתה מוכן לשנות את מציאות חייך מבפנים החוצה? Internal Solutions מציעה כלים מוכחים לריפוי טראומות, פריצת דרך מנטלית ורגשית עם 17 שנות ניסיון. התחל היום.
+
+### אודות נטלי
+https://example.com/about
+נטלי בן עטיה שרדה מחלה כרונית, טראומת ילדות ומשברי נפש — וריפאה את עצמה. גלה את המסע האישי שהפך ל-17 שנות עזרה לאחרים לחולל שינוי עמוק ואמיתי.
+
+### שיטות
+https://example.com/methods
+תטא הילינג, אימון אונטולוגי ותכנות תודעה מבוסס נוירומדע — שיטות שנבדקו על בשר ודם. גלה כיצד כל כלי עובד ולמה הוא יוצר שינוי עמוק שמחזיק לאורך זמן.
+
+### צור קשר
+https://example.com/contact
+מוכן להתחיל את המסע? צור קשר עם Internal Solutions עוד היום ונבנה יחד את הדרך שלך לריפוי, חופש רגשי ושינוי אמיתי שמתחיל מבפנים. אנחנו כאן בשבילך.
+
+## Legal & Policy
+
+### Privacy Policy
+https://example.com/privacy
+Information about how user data is collected, stored, and protected.
+
+### Terms & Conditions
+https://example.com/terms
+Legal terms describing service usage, rights, and policies.
+
+### Accessibility Statement
+https://example.com/accessibility
+Information about WCAG compliance and accessibility features.
+
+---
+
+# Business Context (for LLM understanding)
+
+## About Business
+---
+
+# Additional Resources
+
+- **Sitemap**: https://example.com/sitemap.xml
+- **Robots.txt**: https://example.com/robots.txt
