@@ -24,6 +24,10 @@ https://example.com/contact
 https://example.com/courses
 Internal Solutions - קורסים דיגיטליים
 
+### הרצאות וסדנאות לארגונים
+https://example.com/organizations
+Internal Solutions - הרצאות וסדנאות לארגונים
+
 ## Legal & Policy
 
 ### Privacy Policy
