@@ -918,6 +918,7 @@ window.onload = function() {
       return false;
     }
 
+    // SYNC: These helpers must match sharedZoomCropMath.js
     function parseObjPos(op) {
       var x = 50, y = 50;
       try {
@@ -947,37 +948,102 @@ window.onload = function() {
 
       var isMobile = window.innerWidth <= 768;
       if (isMobile) {
-        img.style.setProperty('position', 'relative', 'important');
-        img.style.setProperty('width', '100%', 'important');
-        img.style.setProperty('height', 'auto', 'important');
-        img.style.setProperty('max-width', '100%', 'important');
-        img.style.setProperty('display', 'block', 'important');
-        img.style.setProperty('object-fit', 'cover', 'important');
-        img.style.removeProperty('left');
-        img.style.removeProperty('top');
-        img.style.setProperty('margin', '0', 'important');
         var mSrc = img.getAttribute('data-zappy-mobile-src');
         var mPos = img.getAttribute('data-zappy-mobile-object-position');
-        var mZoom = parseFloat(img.getAttribute('data-zappy-mobile-zoom'));
+        var mZoomStr = img.getAttribute('data-zappy-mobile-zoom');
+        var mZoom = parseFloat(mZoomStr);
         if (mSrc) img.src = mSrc;
-        if (mPos) img.style.setProperty('object-position', mPos, 'important');
-        if (mZoom > 1) {
-          img.style.setProperty('transform', 'scale(' + mZoom + ')', 'important');
-          img.style.setProperty('transform-origin', mPos || '50% 50%', 'important');
-          wrapper.style.setProperty('overflow', 'hidden', 'important');
+
+        wrapper.style.setProperty('width', '100%', 'important');
+        wrapper.style.setProperty('max-width', '100%', 'important');
+        wrapper.style.setProperty('overflow', 'hidden', 'important');
+        wrapper.style.setProperty('position', 'relative', 'important');
+
+        var _sW = parseFloat(wrapper.getAttribute('data-zappy-zoom-wrapper-width')) || 0;
+        var _sH = parseFloat(wrapper.getAttribute('data-zappy-zoom-wrapper-height')) || 0;
+        if (_sW > 0 && _sH > 0) {
+          wrapper.style.setProperty('padding-bottom', '0', 'important');
+          wrapper.style.setProperty('aspect-ratio', _sW + '/' + _sH, 'important');
+          wrapper.style.setProperty('height', 'auto', 'important');
+        }
+
+        function applyMobileZoomCrop(_img, _wrapper, _effPos, _effZoom) {
+          var rect = _wrapper.getBoundingClientRect();
+          if (!rect || !rect.width || !rect.height) return;
+          var nW = _img.naturalWidth || 0, nH = _img.naturalHeight || 0;
+          if (!(nW > 0 && nH > 0)) return;
+          var imgA = nW / nH;
+          var contA = rect.width / rect.height;
+          var cover = coverPercents(imgA, contA);
+          var wP = 100, hP = 100;
+          if (_effZoom >= 1) { wP = cover.w * _effZoom; hP = cover.h * _effZoom; }
+          else { var t2 = (_effZoom - 0.5) / 0.5; if (!isFinite(t2)) t2 = 0; t2 = Math.max(0, Math.min(1, t2)); wP = 100 + t2 * (cover.w - 100); hP = 100 + t2 * (cover.h - 100); }
+          var p2 = parseObjPos(_effPos);
+          var lP = (100 - wP) * (p2.x / 100);
+          var tP = (100 - hP) * (p2.y / 100);
+          _img.style.setProperty('position', 'absolute', 'important');
+          _img.style.setProperty('left', lP + '%', 'important');
+          _img.style.setProperty('top', tP + '%', 'important');
+          _img.style.setProperty('width', wP + '%', 'important');
+          _img.style.setProperty('height', hP + '%', 'important');
+          _img.style.setProperty('max-width', 'none', 'important');
+          _img.style.setProperty('max-height', 'none', 'important');
+          _img.style.setProperty('display', 'block', 'important');
+          _img.style.setProperty('object-fit', _effZoom < 1 ? 'fill' : 'cover', 'important');
+          _img.style.setProperty('margin', '0', 'important');
+        }
+
+        var effZoom = (isFinite(mZoom) && mZoom > 0) ? mZoom : zoom;
+        var effPos = mPos || img.getAttribute('data-zappy-object-position') || img.style.objectPosition || '50% 50%';
+        if (_sW > 0 && _sH > 0) {
+          applyMobileZoomCrop(img, wrapper, effPos, effZoom);
+          if (!(img.complete && img.naturalWidth > 0)) {
+            img.addEventListener('load', function _onLoad() {
+              img.removeEventListener('load', _onLoad);
+              try { applyMobileZoomCrop(img, wrapper, effPos, effZoom); } catch(e) {}
+            });
+          }
+        } else {
+          img.style.setProperty('position', 'relative', 'important');
+          img.style.setProperty('width', '100%', 'important');
+          img.style.setProperty('height', 'auto', 'important');
+          img.style.setProperty('max-width', '100%', 'important');
+          img.style.setProperty('display', 'block', 'important');
+          img.style.setProperty('object-fit', 'cover', 'important');
+          img.style.removeProperty('left');
+          img.style.removeProperty('top');
+          img.style.setProperty('margin', '0', 'important');
         }
         return;
       }
 
-      // Desktop: if the image already has zoom styles saved from the editor
-      // (position:absolute + percentage-based width), trust them.
-      // The saved percentages are proportional and correct for any container size,
-      // since zoom/crop math is based purely on aspect ratios.
-      // Recalculating here can produce different values when the container
-      // dimensions differ between preview and deployed site.
+      // Desktop zoom === 1: image fills the wrapper exactly — no crop math
+      // needed. Always set 100%/100% to override any stale inline styles
+      // that may have been baked in with incorrect values.
+      if (zoom === 1) {
+        wrapper.style.setProperty('overflow', 'hidden', 'important');
+        wrapper.style.setProperty('position', 'relative', 'important');
+        img.style.setProperty('position', 'absolute', 'important');
+        img.style.setProperty('width', '100%', 'important');
+        img.style.setProperty('height', '100%', 'important');
+        img.style.setProperty('left', '0%', 'important');
+        img.style.setProperty('top', '0%', 'important');
+        img.style.setProperty('max-width', 'none', 'important');
+        img.style.setProperty('max-height', 'none', 'important');
+        img.style.setProperty('object-fit', 'cover', 'important');
+        img.style.setProperty('display', 'block', 'important');
+        img.style.setProperty('margin', '0', 'important');
+        return;
+      }
+
+      // Desktop zoom > 1: if the image already has zoom styles saved from
+      // the editor (position:absolute + percentage-based width), trust
+      // them.  Sites published before the zoom-out fix had wrong values
+      // baked in for zoom < 1 (used cover*zoom instead of the
+      // interpolation formula), so those must always be recalculated.
       var existingPos = (img.style.position || '').replace(/s*!importants*/g, '').trim();
       var existingW = (img.style.width || '').replace(/s*!importants*/g, '').trim();
-      if (existingPos === 'absolute' && existingW.indexOf('%') !== -1) {
+      if (existingPos === 'absolute' && existingW.indexOf('%') !== -1 && zoom > 1) {
         wrapper.style.setProperty('overflow', 'hidden', 'important');
         wrapper.style.setProperty('position', 'relative', 'important');
         return;
@@ -1006,7 +1072,7 @@ window.onload = function() {
         hPct = 100 + t * (cover.h - 100);
       }
 
-      var op = img.style.objectPosition || window.getComputedStyle(img).objectPosition || '50% 50%';
+      var op = img.getAttribute('data-zappy-object-position') || img.style.objectPosition || window.getComputedStyle(img).objectPosition || '50% 50%';
       var pos = parseObjPos(op);
       var leftPct = (100 - wPct) * (pos.x / 100);
       var topPct = (100 - hPct) * (pos.y / 100);
@@ -1051,14 +1117,16 @@ window.onload = function() {
 
       if (widthMode === 'px' && storedW) {
         var curW = (wrapper.style.width || '').replace(/s*!importants*/g, '').trim();
-        if (!curW || curW === '100%' || curW.indexOf('%') !== -1) {
+        var storedWNorm = storedW.replace(/s*!importants*/g, '').trim();
+        if (!curW || curW === '100%' || curW.indexOf('%') !== -1 || curW !== storedWNorm) {
           wrapper.style.setProperty('width', storedW, 'important');
           wrapper.style.setProperty('max-width', '100%', 'important');
         }
       }
       if (storedH) {
         var curH = (wrapper.style.height || '').replace(/s*!importants*/g, '').trim();
-        if (!curH || curH === 'auto' || curH === '100%' || curH.indexOf('%') !== -1) {
+        var storedHNorm = storedH.replace(/s*!importants*/g, '').trim();
+        if (!curH || curH === 'auto' || curH === '100%' || curH.indexOf('%') !== -1 || curH !== storedHNorm) {
           wrapper.style.setProperty('height', storedH, 'important');
         }
       }
@@ -1559,8 +1627,19 @@ window.onload = function() {
       for (var g = 0; g < grids.length; g++) {
         try {
           var container = grids[g];
-          // Skip if already processed
-          if (container.getAttribute('data-zappy-grid-centered') === 'true') continue;
+
+          // Clear previous centering so we can recalculate (e.g. after i18n direction change)
+          if (container.getAttribute('data-zappy-grid-centered') === 'true') {
+            var prevItems = Array.from(container.children);
+            for (var p = 0; p < prevItems.length; p++) {
+              if (prevItems[p].getAttribute && prevItems[p].getAttribute('data-zappy-gc') === '1') {
+                prevItems[p].style.transform = prevItems[p].getAttribute('data-zappy-gc-orig') || '';
+                prevItems[p].removeAttribute('data-zappy-gc');
+                prevItems[p].removeAttribute('data-zappy-gc-orig');
+              }
+            }
+            container.removeAttribute('data-zappy-grid-centered');
+          }
 
           var items = [];
           for (var c = 0; c < container.children.length; c++) {
@@ -1597,19 +1676,13 @@ window.onload = function() {
           var missingCols = colCount - itemsInLastRow;
           var offset = missingCols * (colWidth + gap) / 2;
 
-          // Detect RTL
+          // Detect RTL — use the computed direction which already accounts for
+          // CSS cascade, html[dir], and inheritance. Do NOT walk up checking inline
+          // styles because multi-language sites may have stale direction:rtl on
+          // parent elements from the primary language while serving an LTR page.
           var dir = cs.direction || 'ltr';
-          var el = container;
-          while (el && dir === 'ltr') {
-            if (el.getAttribute && el.getAttribute('dir')) { dir = el.getAttribute('dir'); break; }
-            if (el.style && el.style.direction) { dir = el.style.direction; break; }
-            el = el.parentElement;
-          }
           var translateValue = dir === 'rtl' ? -offset : offset;
 
-          // Apply transform to last-row items
-          // Temporarily disable CSS transitions to prevent visible animation
-          // Preserve any existing transforms (e.g., scale, rotate) by composing
           var startIndex = totalItems - itemsInLastRow;
           var savedTransitions = [];
           for (var i = startIndex; i < totalItems; i++) {
@@ -1617,32 +1690,36 @@ window.onload = function() {
             savedTransitions.push(item.style.transition);
             item.style.transition = 'none';
             var existingTransform = item.style.transform || '';
+            item.setAttribute('data-zappy-gc-orig', existingTransform);
             var newTransform = existingTransform
               ? existingTransform + ' translateX(' + translateValue + 'px)'
               : 'translateX(' + translateValue + 'px)';
             item.style.transform = newTransform;
+            item.setAttribute('data-zappy-gc', '1');
           }
 
-          // Force synchronous reflow so the transform is applied instantly
           void container.offsetHeight;
 
-          // Restore original transitions
           for (var j = startIndex; j < totalItems; j++) {
             items[j].style.transition = savedTransitions[j - startIndex];
           }
 
-          // Mark grid as processed so we don't double-apply
           container.setAttribute('data-zappy-grid-centered', 'true');
         } catch(e) {}
       }
     }
 
-    // Run once after DOM is fully loaded (fonts, images, layout complete)
     if (document.readyState === 'complete') {
       centerPartialGridRows();
     } else {
       window.addEventListener('load', centerPartialGridRows);
     }
+
+    // Re-center when i18n script changes the page direction
+    try {
+      var dirObs = new MutationObserver(function() { centerPartialGridRows(); });
+      dirObs.observe(document.documentElement, { attributes: true, attributeFilter: ['dir'] });
+    } catch(e) {}
   } catch(e) {}
 })();
 
@@ -1757,4 +1834,100 @@ window.onload = function() {
       _timer = setTimeout(restoreContentAlignments, 200);
     });
   } catch(e) {}
+})();
+
+
+/* ZAPPY_SECTION_ID_FROM_CLASS */
+(function(){
+  function assignIds(){
+    document.querySelectorAll('section').forEach(function(s){
+      if(s.id)return;
+      var cls=(s.className||'').split(/\s+/)[0];
+      if(cls && !document.getElementById(cls)){s.id=cls;}
+    });
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',assignIds,{once:true});}
+  else{assignIds();}
+})();
+/* END ZAPPY_SECTION_ID_FROM_CLASS */
+
+
+/* ZAPPY_EMPTY_SUBMENU_HIDDEN */
+(function(){
+  function markEmpty(){
+    document.querySelectorAll('.sub-menu, .dropdown-menu').forEach(function(ul){
+      var hasVisible=false;
+      for(var i=0;i<ul.children.length;i++){
+        if(window.getComputedStyle(ul.children[i]).display!=='none'){hasVisible=true;break;}
+      }
+      ul.classList.toggle('zappy-empty-submenu',!hasVisible);
+    });
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',markEmpty,{once:true});}
+  else{markEmpty();}
+})();
+/* END ZAPPY_EMPTY_SUBMENU_HIDDEN */
+
+
+/* ZAPPY_INTERNAL_LINKS_NO_NEW_TAB */
+(function(){
+  try {
+    function fixLinks(){
+      var docRe=/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv|rtf|odt|ods|odp)(\?|$)/i;
+      document.querySelectorAll('a[target="_blank"]').forEach(function(a){
+        var h=a.getAttribute('href');
+        if(!h)return;
+        if(h.indexOf('://')!==-1||h.indexOf('mailto:')===0||h.indexOf('tel:')===0)return;
+        if(docRe.test(h))return;
+        a.removeAttribute('target');
+        a.removeAttribute('rel');
+      });
+    }
+    if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',fixLinks)}
+    else{fixLinks()}
+  }catch(e){}
+})();
+
+
+/* ZAPPY_IOS_VIEWPORT_GAP_FIX */
+(function(){
+  try {
+    if (window.__zappyIosViewportGapInit) return;
+    window.__zappyIosViewportGapInit = true;
+
+    function update() {
+      try {
+        var visual = window.innerWidth;
+        var layout = document.documentElement.clientWidth;
+        var gap = Math.max(0, (visual || 0) - (layout || 0));
+        document.documentElement.style.setProperty('--ios-viewport-gap', gap + 'px');
+
+        // Also publish the navbar height so the mobile dropdown menu CSS can
+        // anchor `top` to the navbar's bottom edge. This is needed because
+        // older v2 patches set `top: 100% !important` on .nav-menu, which
+        // with position:fixed resolves against the viewport (=height of
+        // screen) instead of the navbar. --zappy-navbar-bottom gives the
+        // v3 CSS something concrete to override that with.
+        var nav = document.querySelector('nav.navbar, .navbar, header nav, header.navbar');
+        if (nav) {
+          var h = Math.round(nav.getBoundingClientRect().height);
+          if (h > 0) {
+            document.documentElement.style.setProperty('--zappy-navbar-bottom', h + 'px');
+          }
+        }
+      } catch (e) {}
+    }
+
+    update();
+    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('orientationchange', update, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', update);
+    }
+    document.addEventListener('DOMContentLoaded', update);
+    window.addEventListener('load', update);
+    // Re-measure after the navbar layout settles (fonts, images, logo load).
+    setTimeout(update, 250);
+    setTimeout(update, 1000);
+  } catch (e) {}
 })();

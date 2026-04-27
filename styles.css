@@ -8263,6 +8263,75 @@ body.accessibility-widget-visible ._access-menu {
     display: none !important;
   }
 }
+/* mobile-submenu-overflow-fix */
+@media (max-width: 768px) {
+  .navbar .sub-menu.mobile-expanded,
+  .nav-menu .sub-menu.mobile-expanded,
+  #navMenu .sub-menu.mobile-expanded,
+  .zappy-products-dropdown .sub-menu.mobile-expanded,
+  .zappy-products-dropdown > .sub-menu.mobile-expanded,
+  .menu-item-has-children > .sub-menu.mobile-expanded {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .menu-item-has-children,
+  .zappy-products-dropdown,
+  .nav-menu > li.menu-item-has-children {
+    flex-shrink: 0 !important;
+  }
+  .sub-menu a,
+  .navbar .sub-menu a,
+  .navbar .sub-menu li a,
+  nav.navbar .sub-menu li a,
+  .zappy-products-dropdown .sub-menu a {
+    white-space: normal !important;
+  }
+}
+
+
+/* zappy-nav-child-indent */
+.zappy-products-dropdown .zappy-nav-child > a,
+.sub-menu .zappy-nav-child > a {
+  padding-left: 28px !important;
+  font-size: 0.9em !important;
+  opacity: 0.85 !important;
+}
+[dir="rtl"] .zappy-products-dropdown .zappy-nav-child > a,
+[dir="rtl"] .sub-menu .zappy-nav-child > a,
+html[lang="he"] .zappy-products-dropdown .zappy-nav-child > a,
+html[lang="he"] .sub-menu .zappy-nav-child > a,
+html[lang="ar"] .zappy-products-dropdown .zappy-nav-child > a,
+html[lang="ar"] .sub-menu .zappy-nav-child > a {
+  padding-left: 0 !important;
+  padding-right: 28px !important;
+}
+.zappy-products-dropdown .zappy-nav-parent > a,
+.sub-menu .zappy-nav-parent > a {
+  font-weight: 600 !important;
+}
+@media (max-width: 768px) {
+  .nav-menu.active,
+  #navMenu.active {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+}
+
+
+/* ========== EMPTY SUBMENU HIDING (Auto-added by Zappy) ========== */
+.sub-menu:empty,
+.dropdown-menu:empty,
+.sub-menu.zappy-empty-submenu,
+.dropdown-menu.zappy-empty-submenu,
+.nav-menu .sub-menu.zappy-empty-submenu,
+nav .sub-menu.zappy-empty-submenu,
+.navbar .sub-menu.zappy-empty-submenu,
+#navMenu .sub-menu.zappy-empty-submenu,
+#navMenu .dropdown-menu.zappy-empty-submenu {
+  display: none !important;
+}
+
 
 /* ========== RTL MOBILE NAVBAR FIX (zappy-rtl-mobile-fix) ========== */
 /* High-specificity rules to ensure RTL positioning wins over any [lang="en"] conflicts */
@@ -8389,6 +8458,23 @@ body.accessibility-widget-visible ._access-menu {
 }
 
 /* ========== END HERO IMAGE GRADIENT FIX ========== */
+
+
+/* ========== FULLSCREEN HERO OVERFLOW FIX (fullscreen-hero-overflow-fix) ========== */
+@media (max-width: 768px) {
+
+  section[data-hero-type*="fullscreen"] {
+    height: auto !important;
+    min-height: 100svh !important;
+    padding: 0 0 90px 0 !important;
+  }
+  section[data-hero-type*="fullscreen"] > [class*="-container"]:not([class*="bg"]):not([class*="scrim"]):not([class*="divider"]),
+  section[data-hero-type*="fullscreen"] > .container {
+    padding-bottom: 100px !important;
+    min-height: auto !important;
+  }
+}
+/* ========== END FULLSCREEN HERO OVERFLOW FIX ========== */
 
 
 /* ========== PRODUCT ICON STYLES (product-icon-styles) ========== */
@@ -8551,16 +8637,17 @@ body.accessibility-widget-visible ._access-menu {
     min-width: 0 !important;
   }
   
-  /* CRITICAL: Constrain zoom wrappers on mobile - they often have fixed pixel widths */
+  /* CRITICAL: Constrain zoom wrappers on mobile without breaking saved crop geometry */
   [data-zappy-zoom-wrapper="true"] {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: auto !important;
+    overflow: hidden !important;
+    position: relative !important;
   }
   
-  /* Fix zoom wrapper images on mobile - make responsive */
-  [data-zappy-zoom-wrapper="true"] img {
+  /* Legacy zoom wrappers without saved crop data can still fall back to responsive images. */
+  [data-zappy-zoom-wrapper="true"]:not([data-zappy-zoom-wrapper-width]) img:not([data-zappy-mobile-object-position]):not([data-zappy-mobile-zoom]) {
     position: relative !important;
     width: 100% !important;
     height: auto !important;
@@ -8753,6 +8840,19 @@ body.accessibility-widget-visible ._access-menu {
   [data-zappy-zoom-wrapper] {
     max-width: 100% !important;
   }
+
+  /* ========== FULLSCREEN HERO OVERFLOW FIX ========== */
+
+  section[data-hero-type*="fullscreen"] {
+    height: auto !important;
+    min-height: 100svh !important;
+    padding: 0 0 90px 0 !important;
+  }
+  section[data-hero-type*="fullscreen"] > [class*="-container"]:not([class*="bg"]):not([class*="scrim"]):not([class*="divider"]),
+  section[data-hero-type*="fullscreen"] > .container {
+    padding-bottom: 100px !important;
+    min-height: auto !important;
+  }
 }
 
 /* ========== HERO SECTION WIDTH CONSTRAINT (ALL VIEWPORTS) ========== */
@@ -8868,7 +8968,73 @@ section[data-hero-type] {
 /* ========== END GRID RESPONSIVE FIX ========== */
 
 
+/* ZAPPY_NAVBAR_CTA_ALIGNMENT_FIX */
+.nav-cta-container .zappy-search-container,
+.zappy-search-container { align-self: center; }
+.nav-cta-container p { margin: 0 !important; }
+
+
 /* ZAPPY_SECTION_BG_TYPE_FIX */
 [data-zappy-bg-type="color"] { background-image: none !important; background-color: var(--zappy-bg-color, transparent) !important; }
 [data-zappy-bg-type="image"] { background-image: linear-gradient(var(--zappy-bg-overlay, rgba(0,0,0,0)), var(--zappy-bg-overlay, rgba(0,0,0,0))), var(--zappy-bg-image, none) !important; background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
 [data-zappy-bg-type="video"] { background-image: none !important; }
+
+
+/* ZAPPY_IOS_NAVBAR_GAP_FIX */
+/* iOS Safari does not clip overflow-x:hidden on <html>, so a page with any
+   horizontal overflow ends up with visual viewport > layout viewport.
+   position:fixed children anchored with right:0 (the mobile dropdown menu)
+   then pin to the visual viewport right edge — off-screen past the navbar.
+   Companion JS (ZAPPY_IOS_VIEWPORT_GAP_FIX in script.js) measures the gap
+   and exposes it as --ios-viewport-gap; this rule uses it to shift the
+   menu inward so it lands on the real layout-viewport right edge. On every
+   other browser the gap is 0 and the rule is a no-op.
+
+   The selector list below intentionally mirrors the RTL selectors used
+   elsewhere in the stylesheet — we need equal-or-higher specificity to
+   win the cascade (!important alone can't beat higher specificity). */
+@media (max-width: 768px) {
+  .navbar,
+  nav.navbar {
+    width: auto !important;
+    max-width: none !important;
+    left: 0 !important;
+    right: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  #navMenu,
+  .nav-menu,
+  html[dir="rtl"] .nav-menu,
+  html[dir="rtl"] .navbar .nav-menu,
+  html[dir="rtl"] nav .nav-menu,
+  html[dir="rtl"] header .nav-menu,
+  html[dir="rtl"] .nav-container .nav-menu,
+  [dir="rtl"] .navbar .nav-menu,
+  [dir="rtl"] nav .nav-menu,
+  [dir="rtl"] header .nav-menu,
+  [dir="rtl"] .nav-container .nav-menu,
+  [dir="rtl"] .nav-menu,
+  html[lang="he"] .nav-menu,
+  html[lang="ar"] .nav-menu {
+    /* Force position:fixed so the --ios-viewport-gap shift is measured
+       against the (visual) viewport, not whatever container the menu may
+       have been reparented into by earlier v1/v2 patches.
+       --zappy-navbar-bottom is set by the runtime JS companion and
+       defaults to 70px — this lets us override the v2 `top: 100%` (which
+       with position:fixed would resolve to the full viewport height and
+       push the menu off-screen). */
+    position: fixed !important;
+    top: var(--zappy-navbar-bottom, 70px) !important;
+    right: var(--ios-viewport-gap, 0px) !important;
+  }
+}
+
+/* RTL footer contact: icon on the right (start) side, text on the left */
+html[dir="rtl"] .footer-contact li, html[dir="rtl"] .site-footer .footer-contact li, html[dir="rtl"] .site-footer .footer-col:nth-child(3) .footer-contact li { flex-direction: row !important; justify-content: flex-start !important; }
+html[dir="rtl"] .footer-contact .contact-icon { order: 0 !important; }
+html[dir="rtl"] .footer-contact .contact-text { order: 1 !important; }
+html[dir="rtl"] .footer-contact li > a { flex-direction: row !important; }
+
+/* Spec table BiDi fix: isolate cells so mixed LTR/RTL content renders correctly */
+.specs-table th, .specs-table td { unicode-bidi: plaintext !important; }
